@@ -3,6 +3,7 @@ from twilio.twiml.messaging_response import MessagingResponse
 import firebase_admin
 from firebase_admin import credentials, firestore, initialize_app
 from flask_cors import CORS
+import datetime
 import uuid
 import requests
 
@@ -14,6 +15,8 @@ cred = credentials.Certificate("serviceAccountKey.json")
 firebase_admin.initialize_app(cred)
 
 db = firestore.client()
+users_ref = db.collection('users')
+request_ref = db.collection('request')
 
 # Dictionary API base URL
 base_url = 'https://api.dictionaryapi.dev/api/v2/entries/en/'
@@ -21,10 +24,20 @@ base_url = 'https://api.dictionaryapi.dev/api/v2/entries/en/'
 
 @app.route("/", methods=['GET', 'POST'])
 def sms_reply():
+
+    # Text message from user
     phone_number = request.values.get('From')
     word = request.values.get('Body').lower()
+
+    # Add request to DB
+    store_request(phone_number, word)
+
+    # Get word data
     word_dict = get_word_dict(word)
+
+    # Make text response
     response = make_sms_response(word_dict)
+
     pass
 
 
@@ -69,3 +82,13 @@ def make_sms_response(word_dict):
     """ % (word, definition, example)
 
     return response
+
+
+def store_request(phone_number, word):
+    request = {}
+    doc_id = uuid.uuid1()
+    request['id'] = doc_id
+    request['phone_number'] = phone_number
+    request['word'] = word
+    request['timestamp'] = datetime.now()
+    request_ref.document(str(doc_id)).set(request)
