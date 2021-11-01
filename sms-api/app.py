@@ -25,6 +25,10 @@ base_url = 'https://api.dictionaryapi.dev/api/v2/entries/en/'
 @app.route("/", methods=['GET', 'POST'])
 def sms_reply():
 
+
+
+    resp = MessagingResponse() 
+    
     # Text message from user
     phone_number = request.values.get('From')
     word = request.values.get('Body').lower()
@@ -37,8 +41,9 @@ def sms_reply():
 
     # Make text response
     response = make_sms_response(word_dict)
+    resp.message(response)
 
-    pass
+    return str(resp)
 
 
 @app.route('/word/<word>', methods=['GET'])
