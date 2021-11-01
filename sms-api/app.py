@@ -92,8 +92,8 @@ def make_sms_response(word_dict):
 def store_request(phone_number, word):
     request = {}
     doc_id = uuid.uuid1()
-    request['id'] = doc_id
+    request['id'] = str(doc_id)
     request['phone_number'] = phone_number
     request['word'] = word
-    request['timestamp'] = datetime.now()
+    request['timestamp'] = datetime.datetime.now()
     request_ref.document(str(doc_id)).set(request)
